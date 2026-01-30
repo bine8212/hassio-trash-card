@@ -72,6 +72,7 @@ const getCalendarData = async (
 
   const eventItems = eventsToItems(activeEvents, {
     pattern: config.pattern!,
+    calendar_settings: config.calendar_settings,
     useSummary: Boolean(config.use_summary)
   });
 

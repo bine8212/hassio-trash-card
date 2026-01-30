@@ -16,6 +16,7 @@ interface RawCalendarEvent {
   // eslint-disable-next-line @typescript-eslint/naming-convention
   recurrence_id: string | null;
   rrule: string | null;
+  entity?: string;
 }
 
 interface CalendarEvent {
@@ -24,7 +25,8 @@ interface CalendarEvent {
     end: Date;
   };
   isWholeDayEvent: boolean;
-  content: Omit<RawCalendarEvent, 'start' | 'end'>;
+  content: Omit<RawCalendarEvent, 'start' | 'end' | 'entity'>;
+  entity?: string;
 }
 
 export type {

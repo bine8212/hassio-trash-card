@@ -53,7 +53,8 @@
             "tabs": {
                 "settings": "Einstellungen",
                 "appearance": "Darstellung",
-                "patterns": "Vorlagen"
+                "patterns": "Vorlagen",
+                "calendar_settings": "Kalender-Einstellungen"
             },
             "refresh_rate": {
                 "title": "Aktualisierungsintervall",
@@ -96,6 +97,30 @@
                         "pattern": "Mustererkennung (z.B. Rest für Restmüll)",
                         "picture_url": "Bild-URL",
                         "picture_url_description": "Wenn eine Bild-URL angegeben wird, wird das entsprechende Bild anstelle des Icons angezeigt. Lege dazu einfach ein Bild in dem `/config/www` Ordner ab und verwende `/local/[Dateiname]`."
+                    }
+                },
+                "calendar_settings": {
+                    "title": "Kalender-Einstellungen bearbeiten",
+                    "edit": "bearbeiten",
+                    "delete": "löschen",
+                    "create": "Neue Kalender-Einstellungen erstellen",
+                    "fields": {
+                        "entity": "Kalender-Entity",
+                        "label": "Bezeichnung (optional)",
+                        "color": "Farbe",
+                        "icon": "Symbol",
+                        "picture_url": "Bild-URL",
+                        "picture_url_description": "Wenn eine Bild-URL angegeben wird, wird das entsprechende Bild anstelle des Icons angezeigt. Lege dazu einfach ein Bild in dem `/config/www` Ordner ab und verwende `/local/[Dateiname]`.",
+                        "type": "Typ",
+                        "type_description": "Typ des Kalenders (optional, Standard: Sonstiges)",
+                        "type_values": {
+                            "custom": "Benutzerdefiniert",
+                            "organic": "Bio",
+                            "paper": "Papier",
+                            "recycle": "Verpackung",
+                            "waste": "Restmüll",
+                            "others": "Sonstiges"
+                        }
                     }
                 }
             }

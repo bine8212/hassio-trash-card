@@ -26,8 +26,9 @@ const normaliseEvents = (events: RawCalendarEvent[]): CalendarEvent[] => {
         isWholeDayEvent: Boolean('date' in item.start),
         content: {
           ...Object.fromEntries(Object.entries(item).filter(([ key ]) =>
-            ![ 'end', 'start' ].includes(key))) as CalendarEvent['content']
-        }
+            ![ 'end', 'start', 'entity' ].includes(key))) as CalendarEvent['content']
+        },
+        entity: item.entity
       };
     });
 };

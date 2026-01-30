@@ -20,6 +20,54 @@ const getPatternOthersSchema = (localize: LocalizeFunc) => [
   }
 ];
 
+const getCalendarSettingsSchema = (customLocalize: LocalizeFunc, localize: LocalizeFunc) => [
+  {
+    name: 'entity',
+    label: customLocalize(`editor.card.trash.calendar_settings.fields.entity`),
+    selector: {
+      entity: {
+        domain: 'calendar'
+      }
+    },
+    required: true
+  },
+  {
+    label: customLocalize(`editor.card.trash.calendar_settings.fields.label`),
+    name: 'label',
+    selector: {
+      text: {}
+    }
+  },
+  ...getPatternOthersSchema(localize),
+  {
+    label: customLocalize(`editor.card.trash.calendar_settings.fields.picture_url`),
+    helper: customLocalize(`editor.card.trash.calendar_settings.fields.picture_url_description`),
+    name: 'picture',
+    selector: {
+      text: {}
+    },
+    context: { icon_entity: 'entity' }
+  },
+  {
+    label: customLocalize(`editor.card.trash.calendar_settings.fields.type`),
+    helper: customLocalize(`editor.card.trash.calendar_settings.fields.type_description`),
+    name: 'type',
+    selector: {
+      select: {
+        options: [
+          { value: 'custom', label: customLocalize(`editor.card.trash.calendar_settings.fields.type_values.custom`) },
+          { value: 'organic', label: customLocalize(`editor.card.trash.calendar_settings.fields.type_values.organic`) },
+          { value: 'paper', label: customLocalize(`editor.card.trash.calendar_settings.fields.type_values.paper`) },
+          { value: 'recycle', label: customLocalize(`editor.card.trash.calendar_settings.fields.type_values.recycle`) },
+          { value: 'waste', label: customLocalize(`editor.card.trash.calendar_settings.fields.type_values.waste`) },
+          { value: 'others', label: customLocalize(`editor.card.trash.calendar_settings.fields.type_values.others`) }
+        ],
+        mode: 'dropdown'
+      }
+    }
+  }
+];
+
 const getPatternSchema = (customLocalize: LocalizeFunc, localize: LocalizeFunc) => [
   {
     label: customLocalize(`editor.card.trash.pattern.fields.label`),
@@ -329,5 +377,6 @@ const getSchema = (customLocalize: LocalizeFunc, currentValues: TrashCardConfig,
 export {
   getSchema,
   getPatternSchema,
-  getPatternOthersSchema
+  getPatternOthersSchema,
+  getCalendarSettingsSchema
 };

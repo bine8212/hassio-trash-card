@@ -3,6 +3,15 @@ import { defaultConfigStruct } from '../../utils/form/defaultConfigStruct';
 
 import type { ItemSettings } from '../../utils/itemSettings';
 
+interface CalendarSettings {
+  entity: string;
+  label?: string;
+  icon?: string;
+  color?: string;
+  picture?: string;
+  type?: 'custom' | 'organic' | 'paper' | 'recycle' | 'waste' | 'others';
+}
+
 const LAYOUTS = [
   'default',
   'horizontal',
@@ -43,6 +52,7 @@ const COLORMODES = [
 interface TrashCardConfig {
   entities?: string[];
   pattern?: ItemSettings[];
+  calendar_settings?: CalendarSettings[];
   location?: string;
   next_days?: number;
   items_per_row?: number;
@@ -107,6 +117,23 @@ const entityCardConfigStruct = assign(
         picture: optional(string()),
         type: string()
       })
+    )),
+    calendar_settings: optional(array(
+      object({
+        entity: string(),
+        label: optional(string()),
+        icon: optional(string()),
+        color: optional(string()),
+        picture: optional(string()),
+        type: optional(union([
+          literal('custom'),
+          literal('organic'),
+          literal('paper'),
+          literal('recycle'),
+          literal('waste'),
+          literal('others')
+        ]))
+      })
     ))
   })
 );
@@ -123,6 +150,7 @@ export {
 
 export type {
   TrashCardConfig,
-  CardStyleConfig
+  CardStyleConfig,
+  CalendarSettings
 };
 

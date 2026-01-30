@@ -7,15 +7,17 @@ import { TRASH_CARD_EDITOR_NAME } from './const';
 import { css, html, LitElement, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { entityCardConfigStruct } from './trash-card-config';
-import { getPatternOthersSchema, getPatternSchema, getSchema } from './formSchemas';
+import { getPatternOthersSchema, getPatternSchema, getCalendarSettingsSchema, getSchema } from './formSchemas';
 import { fireEvent } from '../../utils/fireEvent';
 
 import './trash-card-pattern-editor';
+import './trash-card-calendar-settings-editor';
 
 import type { TrashCardConfig } from './trash-card-config';
 import type { CSSResultGroup, PropertyValues } from 'lit';
 import type { HomeAssistant } from '../../utils/ha';
 import type { SubElementEditorConfig } from './trash-card-pattern-editor';
+import type { CalendarSettingsSubElementEditorConfig } from './trash-card-calendar-settings-editor';
 import type { HaFormSchema } from '../../utils/form/ha-form';
 
 interface DomEvent<T> extends Event {
@@ -84,7 +86,7 @@ class TrashCardEditor extends LitElement {
 
   @state() private config?: TrashCardConfig;
 
-  @state() private subElementEditorConfig?: SubElementEditorConfig;
+  @state() private subElementEditorConfig?: SubElementEditorConfig | CalendarSettingsSubElementEditorConfig;
 
   @state() private readonly schema = memoizeOne(getSchema);
 
@@ -133,6 +135,39 @@ class TrashCardEditor extends LitElement {
     const customLocalize = setupCustomlocalize(this.hass);
 
     if (this.subElementEditorConfig) {
+      // Check if it's a calendar settings editor config
+      const isCalendarSettings = 'elementConfig' in this.subElementEditorConfig && 
+        this.subElementEditorConfig.elementConfig && 
+        'entity' in this.subElementEditorConfig.elementConfig &&
+        !('pattern' in this.subElementEditorConfig.elementConfig);
+
+      if (isCalendarSettings) {
+        const calendarSettingsSchema = getCalendarSettingsSchema(customLocalize, this.hass.localize);
+
+        return html`
+          <div class="header" id="trashcard-calendar-settings-editor">
+            <div class="back-title">
+                <ha-icon-button
+                    .label=${this.hass.localize('ui.common.back')}
+                    @click=${this.goBack}
+                >
+                  <ha-icon icon="mdi:arrow-left"></ha-icon>
+                </ha-icon-button>
+                <span slot="title">${customLocalize(`editor.card.trash.calendar_settings.title`)}</span>
+            </div>
+          </div>
+            <ha-form
+                .hass=${this.hass}
+                .computeLabel=${this.computeLabel}
+                .computeHelper=${this.computeHelper}
+                .data=${this.subElementEditorConfig.elementConfig}
+                .schema=${calendarSettingsSchema}
+                @value-changed=${this.handleCalendarSettingsSubElementChanged}
+            >
+            </ha-form>
+        `;
+      }
+
       const patternSchema = this.subElementEditorConfig.elementConfig?.type === 'others' ?
         getPatternOthersSchema(this.hass.localize) :
         getPatternSchema(customLocalize, this.hass.localize);
@@ -172,6 +207,60 @@ class TrashCardEditor extends LitElement {
       ></trash-card-pattern-editor>`;
   }
 
+  private isCalendarSettingsSubEditor (): boolean {
+    return Boolean(
+      this.subElementEditorConfig?.elementConfig &&
+      'entity' in this.subElementEditorConfig.elementConfig &&
+      !('pattern' in this.subElementEditorConfig.elementConfig)
+    );
+  }
+
+  private renderFormCalendarSettingsEditor () {
+    if (!this.hass) {
+      return nothing;
+    }
+
+    const customLocalize = setupCustomlocalize(this.hass);
+
+    // Only show calendar settings form when we're actually editing a calendar setting (not a pattern)
+    if (this.subElementEditorConfig && this.isCalendarSettingsSubEditor()) {
+      const calendarSettingsSchema = getCalendarSettingsSchema(customLocalize, this.hass.localize);
+
+      return html`
+        <div class="header" id="trashcard-calendar-settings-editor">
+          <div class="back-title">
+              <ha-icon-button
+                  .label=${this.hass.localize('ui.common.back')}
+                  @click=${this.goBack}
+              >
+                <ha-icon icon="mdi:arrow-left"></ha-icon>
+              </ha-icon-button>
+              <span slot="title">${customLocalize(`editor.card.trash.calendar_settings.title`)}</span>
+          </div>
+        </div>
+          <ha-form
+              .hass=${this.hass}
+              .computeLabel=${this.computeLabel}
+              .computeHelper=${this.computeHelper}
+              .data=${this.subElementEditorConfig.elementConfig}
+              .schema=${calendarSettingsSchema}
+              @value-changed=${this.handleCalendarSettingsSubElementChanged}
+          >
+          </ha-form>
+      `;
+    }
+
+    return html`
+      <trash-card-calendar-settings-editor
+        .hass=${this.hass}
+          .calendar_settings=${this.config!.calendar_settings}
+          @delete-calendar-settings-item=${this.deleteCalendarSettingsItem}  
+          @create-calendar-settings-item=${this.createCalendarSettingsItem}  
+          @edit-calendar-settings-item=${this.editCalendarSettingsItem}
+          @settings-changed=${this.valueChanged}
+      ></trash-card-calendar-settings-editor>`;
+  }
+
   private goBack (): void {
     this.subElementEditorConfig = undefined;
   }
@@ -194,6 +283,33 @@ class TrashCardEditor extends LitElement {
     };
 
     config.pattern[item] = value;
+
+    this.subElementEditorConfig = {
+      ...this.subElementEditorConfig,
+      elementConfig: value
+    };
+
+    fireEvent(this, 'config-changed', { config });
+  }
+
+  private handleCalendarSettingsSubElementChanged (ev: CustomEvent): void {
+    ev.stopPropagation();
+    if (!this.config || !this.hass || !this.subElementEditorConfig) {
+      return;
+    }
+
+    const item = this.subElementEditorConfig.key!;
+
+    const { value } = ev.detail;
+
+    const config = {
+      ...this.config,
+      calendar_settings: [
+        ...this.config.calendar_settings ?? []
+      ]
+    };
+
+    config.calendar_settings[item] = value;
 
     this.subElementEditorConfig = {
       ...this.subElementEditorConfig,
@@ -256,6 +372,52 @@ class TrashCardEditor extends LitElement {
     fireEvent(this, 'config-changed', { config });
   }
 
+  private editCalendarSettingsItem (ev: DomEvent<{ subElementConfig: CalendarSettingsSubElementEditorConfig }>): void {
+    this.subElementEditorConfig = ev.detail.subElementConfig;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  protected createCalendarSettingsItem (ev: CustomEvent): void {
+    ev.stopPropagation();
+    if (!this.config || !this.hass) {
+      return;
+    }
+
+    const config = {
+      ...this.config,
+      calendar_settings: [
+        ...this.config.calendar_settings ?? []
+      ]
+    };
+
+    config.calendar_settings.push({
+      entity: '',
+      icon: 'mdi:calendar',
+      color: 'blue',
+      type: 'others'
+    });
+
+    fireEvent(this, 'config-changed', { config });
+  }
+
+  protected deleteCalendarSettingsItem (ev: CustomEvent): void {
+    ev.stopPropagation();
+    if (!this.config || !this.hass) {
+      return;
+    }
+
+    const config = {
+      ...this.config,
+      calendar_settings: [
+        ...this.config.calendar_settings ?? []
+      ]
+    };
+
+    config.calendar_settings.splice(ev.detail.index, 1);
+
+    fireEvent(this, 'config-changed', { config });
+  }
+
   protected render () {
     if (!this.hass || !this.config) {
       return nothing;
@@ -282,7 +444,18 @@ class TrashCardEditor extends LitElement {
         <div class="content">
           ${this.renderFormPatternsEditor()}
         </div>
-      </ha-form-expandable>
+      </ha-expansion-panel>
+
+      <ha-expansion-panel id="calendar-settings-expansion-panel" outlined >
+        <div slot="header" role="heading" aria-level="3" >
+          <ha-icon icon="mdi:calendar-cog">
+          </ha-icon>
+          ${customLocalize('editor.form.tabs.calendar_settings')}
+        </div>
+        <div class="content">
+          ${this.renderFormCalendarSettingsEditor()}
+        </div>
+      </ha-expansion-panel>
 
     `;
   }
@@ -347,11 +520,13 @@ class TrashCardEditor extends LitElement {
           padding: 12px;
         }
 
-        #pattern-expansion-panel {
+        #pattern-expansion-panel,
+        #calendar-settings-expansion-panel {
           display: block;
           --expansion-panel-content-padding: 0;
           border-radius: 6px;
           --ha-card-border-radius: 6px;
+          margin-top: 24px;
         }
         #ha-expansion-panel ha-svg-icon,
         #ha-expansion-panel ha-icon {

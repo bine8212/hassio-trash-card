@@ -53,7 +53,8 @@
             "tabs": {
                 "settings": "Settings",
                 "appearance": "Appearance",
-                "patterns": "Patterns"
+                "patterns": "Patterns",
+                "calendar_settings": "Calendar Settings"
             },
             "refresh_rate": {
                 "title": "Update interval",
@@ -106,6 +107,30 @@
                         "pattern_exact_description": "Use pattern as search term, which must be 100% identical to the description of the calendar event. Search term is case-insensitive.",
                         "picture_url": "Picture URL",
                         "picture_url_description": "If a picture URL is specified, the corresponding picture is displayed instead of the icon. Place an image in the `/config/www` folder and use `/local/[filename]`."
+                    }
+                },
+                "calendar_settings": {
+                    "title": "Edit calendar settings",
+                    "edit": "edit",
+                    "delete": "delete",
+                    "create": "Create new calendar settings",
+                    "fields": {
+                        "entity": "Calendar entity",
+                        "label": "Label (optional)",
+                        "color": "Color",
+                        "icon": "Icon",
+                        "picture_url": "Picture URL",
+                        "picture_url_description": "If a picture URL is specified, the corresponding picture is displayed instead of the icon. Place an image in the `/config/www` folder and use `/local/[filename]`.",
+                        "type": "Type",
+                        "type_description": "Type of calendar (optional, default: Others)",
+                        "type_values": {
+                            "custom": "Custom",
+                            "organic": "Organic",
+                            "paper": "Paper",
+                            "recycle": "Recycle",
+                            "waste": "Waste",
+                            "others": "Others"
+                        }
                     }
                 }
             }

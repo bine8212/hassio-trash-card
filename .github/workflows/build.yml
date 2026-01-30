@@ -25,3 +25,8 @@ jobs:
       - name: Build
         run: |
           npm run build
+      - name: Upload trashcard.js
+        uses: actions/upload-artifact@v4
+        with:
+          name: trashcard-${{ matrix.node-version }}
+          path: dist/trashcard.js
